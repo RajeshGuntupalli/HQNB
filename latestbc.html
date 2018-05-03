@@ -1,0 +1,1125 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <title>LIveze</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+   <script src="config.js"></script>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+ 
+
+  <style>
+  input[type=text] {
+    width: 130px;
+height:34px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+
+/* When the input field gets focus, change its width to 100% */
+input[type=text]:focus {
+    width: 100%;
+height:34px;
+}
+
+
+</style>
+
+<style>
+table {
+    width:100%;
+}
+table, th, td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 15px;
+    text-align: center;
+border: 1px solid gray;
+}
+table#t01 tr:nth-child(even) {
+    background-color: #eee;
+}
+table#t01 tr:nth-child(odd) {
+   background-color: #fff;
+}
+table#t01 th {
+    background-color: gray;
+    color: white;
+}
+</style>
+<script>
+function myFunction() {
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("myInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("myTable");
+  tr = table.getElementsByTagName("tr");
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[1];
+    if (td) {
+      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }    
+  }
+}
+
+</script>
+<script type="text/javascript">
+var app = angular.module('myapp', []);
+var allTables = new Array();
+var allResidentIds = new Array();
+var allProvIds = new Array();
+var selMaintainId = "";
+var radioValue=0;
+var isMainRecExist=false;
+var prevStartDate="";
+var prevEndDate="";
+var prevMainId="";
+var addMainId="";
+var rmainingBal="";
+Number.prototype.padLeft = function(base,chr){
+var len = (String(base || 10).length - String(this).length)+1;
+return len > 0? new Array(len).join(chr || '0')+this : this;
+}
+app.controller('myappcontroller', function($scope, $http,$window,$location) {
+$scope.mainaptId=[];
+$scope.mainspdaptId=[];
+$scope.aptNameDisId=[];
+var mulData="";
+var priPerRes=0;
+
+  getBuildingDetails()
+  function getBuildingDetails() {
+  $http({
+    method : 'GET',
+    url : person.host+"/Apartment",
+   }).then(function successCallback(response) {
+
+
+
+var myselect = $('<select>');
+   if(response.data.length !=undefined){
+   //document.getElementById("disButSerId").disabled = true;
+   for(var w=0;w<response.data.length;w++){
+   myselect.append( $('<option id="selId'+w+'"></option>').val(response.data[w].apartmentId).html(response.data[w].apartmentName) );
+   }
+   }else{
+
+    myselect.append( $('<option></option>').val(response.data.apartmentId).html(response.data.apartmentName) );
+   }
+    $('#buildingId').append(myselect.html());
+   
+   }, function errorCallback(response) {
+    console.log(response.statusText);
+   });
+  }
+  
+  //dis ena
+  function changetextbox()
+{
+var e = document.getElementById("buildingId");
+var strUser = e.options[e.selectedIndex].text;
+
+
+    if (strUser === "- select -") {
+	//alert(strUser)
+        document.getElementById("disButMainId").disabled=true;
+		 document.getElementById("disButSerId").disabled = true;
+    } else {
+        document.getElementById("disButMainId").disabled=false;
+		document.getElementById("disButSerId").disabled = false;
+    }
+}
+
+   var strDate="";
+   function SortByStartDate(x,y) {
+      return ((x.startDate == y.startDate) ? 0 : ((x.startDate > y.startDate) ? 1 : -1 ));
+    }
+function sleep(seconds)
+{
+  var e = new Date().getTime() + (seconds * 1000);
+  while (new Date().getTime() <= e) {}
+}
+  function getAllPreviousTransactions(noOfMonths) {
+  $("#TotalServData").empty();
+    $("#NoMainId").empty();
+  $http({
+    method : 'GET',
+    url : person.host+"/queries/getMaintenanceByAprtId?apartmentId="+aptId,
+   }).then(function successCallback(response) {
+changetextbox()
+   $scope.mainaptId = response.data;
+   if(response.data.length !=undefined && response.data.length !=0){
+    
+   allTables = new Array();
+   allResidentIds=new Array();
+   allProvIds = new Array();
+    response.data.sort(SortByStartDate);
+var timmer=false;
+var monthVal=0;
+if(noOfMonths==0){
+monthVal=0;
+}else if(noOfMonths==1){
+monthVal=response.data.length-1;
+}else if(noOfMonths==3){
+if(response.data.length>=3){
+monthVal=response.data.length-3;
+}else{
+monthVal=0;
+}
+}
+var count=1;
+var firstRow="";
+   for(var q=response.data.length-1;q>=monthVal;q--){
+   if(timmer){
+   sleep(1);
+   }
+  
+   timmer=true;
+   totMainId=response.data[q].maintenanceId;
+   strDate=response.data[q].startDate;
+   endDate=response.data[q].endDate;
+   if(count==1){
+   prevStartDate=strDate;
+   prevEndDate=endDate;
+   prevMainId=response.data[q].maintenanceId;
+   }
+   //console.log(strDate+"-"+endDate)
+   firstRow = "<tr class='Entries'><td>"+$scope.aptNameDisId+"</td><td>-</td><td>-</td><td style='color:blue;'>"+response.data[q].description+"</td><td>-</td><td>-</td><td>"+response.data[q].balFrmPreMaintenance+"</td></tr>"
+   getTenureData(totMainId,strDate,endDate,count,response.data[q].balFrmPreMaintenance,firstRow)
+   count++;
+  allTables[q]="table"+totMainId;
+
+   }
+   $scope.mainaptId = response.data;
+
+   }else{
+   $scope.mainaptId = [response.data];
+   if(aptId!="- select -")
+    $("#NoMainId").append("No existing Maintanenance records for Building, Please add a Maintainence");
+   }
+
+   }, function errorCallback(response) {
+    console.log(response.statusText);
+   });
+  
+  }
+
+
+
+var indResId;
+function getTenureData(mainId,strDt,endDt,count,mainBal,firstRow){
+var totBal=mainBal;
+$.ajax({
+url:person.host+"/queries/getTenueMntByMntId?maintenanceId="+mainId,
+type:"GET",
+indexValue: count,
+Accept:"application/json",
+success:function(resultdata){
+mulData="";
+priPerRes=resultdata[0].curMainAM;
+var resIds = new Array();var monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December" ];
+var d = new Date(endDt);
+
+for(var tmid=0;tmid<resultdata.length;tmid++){
+
+indResId=resultdata[tmid].residentId;
+resIds[tmid]=indResId;
+var tenResId="resDivId"+mainId+indResId;
+allResidentIds[allResidentIds.length]=tenResId;
+
+totBal= totBal+resultdata[tmid].curMainAM;
+
+var readOnlybutton="";
+readOnlybutton='disabled'
+//console.log(resultdata)
+mulData += "<tr class='Entries'><td>"+$scope.aptNameDisId+"</td><td style='color:green;' id='"+tenResId+"'></td><td>-</td><td style='color:blue;'>"+resultdata[tmid].description+"</td><td>"+resultdata[tmid].startDate+"</td><td>"+resultdata[tmid].curMainAM+"</td><td>"+totBal+"</td></tr>";
+//console.log(mulData)
+
+}
+
+var tbodyId="tbody"+mainId;
+var tDivId="divId"+mainId;
+//alert(tDivId)
+$("#TotalServData").append("<div><div style='float:left; font-weight:bold;'>Start Date: "+strDt+"</div><div style='font-weight:bold; margin-left:15%;'>End Date: "+endDt+"</div></div><div style='float:right; font-weight:bold;'>Price Per Resident for the month of "+monthNames[d.getMonth()] +" is "+priPerRes+" </div><table id='table"+mainId+"' style='margin-bottom:2%;'><thead><tr  ><th>Building</th><th>Resident</th><th>Provider</th><th>Description</th><th>Date</th><th>Amount</th><th>Maintainence Balance</th></tr></thead><tbody id='"+tbodyId+"'>"+firstRow+mulData+"</tbody></table><table><div class='container-fluid'><div class='row'><div class='col-sm-4'></div><div class='col-sm-4'></div><div  class='col-sm-4' style='font-weight:bold;  margin-bottom:2%; font-size:16px;  padding:0px 10px 10px 10px; border-radius: 20px; text-align:center; border:1px dotted gray;'><div id='"+tDivId+"'></div></div></div></div></table>");
+//sortingFun();
+if(count==1){
+selMaintainId=mainId;
+rmainingBal=totBal;
+//$("#TotalServData").append(" <div class='container-fluid'><button type='submit' class='btn btn-primary' data-toggle='modal' data-target='#mySPModal' title='Add Service details'>Add Service details</button></div>");
+}
+//$("#TotalServData").append("<div id='"+tDivId+"'></div>");
+getSerData(mainId,totBal,count);
+//alert("getTenureData"+alldata)
+getResidentName(mainId,resIds);
+},
+
+error:function(e){
+//alert("akjscgca")
+}
+});
+
+
+
+}
+
+
+function getSerData(mainId,totBal,count){
+var totAmount=0;
+
+$.ajax({
+url:person.host+"/queries/getSerProsDtlsByMainId?maintenanceId="+mainId,
+type:"GET",
+Accept:"application/json",
+success:function(resultdata){
+var serData="";
+var getRemId="";
+var indSerName="";
+var serDetBal=totBal;
+if(resultdata.length!=0){
+var serProIds = new Array();
+var tenResNameId="";
+for(var spm=0;spm<resultdata.length;spm++){
+
+indSerName = resultdata[spm].serviceProviderId+"_"+resultdata[spm].serviceDetailsId;
+
+serProIds[spm]=indSerName;
+tenResNameId="sproDivId"+mainId+indSerName;
+allProvIds[allProvIds.length] = tenResNameId;
+
+serDetBal= serDetBal-resultdata[spm].totalPrice;
+
+var readOnlybutton="";
+readOnlybutton='disabled'
+serData += "<tr><td>"+$scope.aptNameDisId+"</td><td>-</td><td style='color:red;' id='"+tenResNameId+"'></td><td style='color:blue;'>"+resultdata[spm].description+"</td><td>"+resultdata[spm].paidDate+"</td><td>"+resultdata[spm].totalPrice+"</td><td>"+ serDetBal+"</td></tr>";
+//$("#spMaintenanceId").append("<div class='container-fluid' style='margin-bottom:2%; '><div class='table table-responsive'><table class='table'><thead><tr><th>S.No12</th><th>Building</th><th>Resident</th><th>Provider</th><th>Description</th><th>Date</th><th>Amount</th><th>Maintenance Balance</th></tr></thead><tbody><td>1</td><td>"+resultdata[spm].maintenanceId+"</td><td>-</td><td>"+resultdata[spm].serviceProviderId+"</td><td>"+resultdata[spm].description+"</td><td>"+resultdata[spm].status+"</td><td>"+resultdata[spm].status+"</td><td>"+resultdata[spm].status+"</td><td>"+resultdata[spm].status+"</td><td><input type='submit' class='btn btn-primary btn-sm' value='Pay to ServiceProvider' data-toggle='modal' data-target='#myMaintenanceModal' /></td></tbody></table></div><div style='float:right; margin-right:22%; font-size:16px; font-weight:bold; line-height:40px;'><div>Remaining : </div><div>PricePerResident : </div></div></div>");
+}
+if(count==1){
+rmainingBal=serDetBal;
+}
+var gettbodyId="#tbody"+mainId;
+$(gettbodyId).append("</br>"+serData);
+getRemId +="<div style='font-size:16px; font-weight:bold;'>Remaining Balance is "+serDetBal+"</div>";
+var getDivtId="#divId"+mainId;
+$(getDivtId).append("</br>"+getRemId);
+// alert(getRemId);
+getSproviderName(mainId,serProIds);
+
+}else{
+//alert("main id"+mainId+"length"+resultdata.length)
+getRemId +="<div style='font-size:16px; font-weight:bold;'>Remaining Balance is "+serDetBal+"</div>";
+
+var getDivtId="#divId"+mainId;
+$(getDivtId).append("</br>"+getRemId);}
+},
+
+error:function(e){
+//alert("akjscgca")
+}
+});
+
+}
+
+//get resident name based on id
+
+function getResidentName(mainId,resIds){
+
+var resName="";
+var indResId="";
+for(var tmid=0;tmid<resIds.length;tmid++){
+indResId=resIds[tmid];
+
+$.ajax({
+url:person.host+"/Resident/"+indResId,
+type:"GET",
+Accept:"application/json",
+success:function(resultdata){
+resName= resultdata.name +","+resultdata.residentId;
+var resNameId="#resDivId"+mainId+resultdata.residentId  ;
+
+$(resNameId).append(resName);
+},
+
+error:function(e){
+//alert("akjscgca")
+}
+});
+}
+}
+
+//get sp name based on id
+
+function getSproviderName(mainId,serProIds){
+
+var proId="";
+var tdSdId="";
+for(var sid=0;sid<serProIds.length;sid++){
+tdSdId=serProIds[sid];
+proId=tdSdId.split("_")[0];
+$.ajax({
+url:person.host+"/ServiceProvider/"+proId,
+indexValue: tdSdId,
+type:"GET",
+Accept:"application/json",
+success:function(resultdata){
+//console.log(resultdata.name);
+var spNameId="#sproDivId"+mainId+this.indexValue;
+
+$(spNameId).append(resultdata.name);
+},
+
+error:function(e){
+//alert("akjscgca")
+}
+});
+}
+}
+
+
+  // get servicedetailsbyaptId
+
+     function getServiceProviderDetailsByAptId() {
+  $http({
+    method : 'GET',
+    url : person.host+"/queries/getSerProsDetailsByAprtId?appartmentId="+aptId,
+   }).then(function successCallback(response) {
+   //console.log(response)
+   $scope.mainspdaptId = response.data;
+
+
+
+   if(response.data.length !=undefined){
+   $scope.mainspdaptId = response.data;
+   for(var spd=0;spd<response.data.length;spd++){
+
+   }
+   }else{
+   $scope.mainspdaptId = [response.data];
+
+   }
+
+
+   }, function errorCallback(response) {
+    console.log(response.statusText);
+   });
+  }
+
+  //
+
+$(function(){
+  $('input[type="radio"]').click(function(){
+    if ($(this).is(':checked'))
+    {
+if($(this).val()==1){
+radioValue=1;
+getAllPreviousTransactions(radioValue);
+getServiceProviderDetailsByAptId();
+  }
+  if($(this).val()==2){
+  radioValue=3;
+getAllPreviousTransactions(radioValue);
+getServiceProviderDetailsByAptId();
+  }
+  if($(this).val()==3){
+  radioValue=0;
+getAllPreviousTransactions(radioValue);
+getServiceProviderDetailsByAptId();
+  }
+    }
+  });
+});
+
+
+  //provider Details
+    getProviderDetails()
+  function getProviderDetails() {
+  $http({
+    method : 'GET',
+    url : person.host+"/ServiceProvider",
+   }).then(function successCallback(response) {
+   //console.log(response)
+   $scope.myWelcome = response.data;
+
+
+var myselect = $('<select>');
+   if(response.data.length !=undefined){
+   $scope.myWelcome = response.data;
+   for(var sp=0;sp<response.data.length;sp++){
+   myselect.append( $('<option></option>').val(response.data[sp].serviceProviderId).html(response.data[sp].name) );
+   }
+   }else{
+   $scope.myWelcome = [response.data];
+    myselect.append( $('<option></option>').val(response.data.serviceProviderId).html(response.data.name) );
+   }
+   
+    $('#providerId').append(myselect.html());
+$('#spdproId').append(myselect.html());
+
+   }, function errorCallback(response) {
+    console.log(response.statusText);
+   });
+  }
+
+
+
+$("#buildingId").on('change', function () {
+
+var e = document.getElementById("buildingId");
+aptId = e.options[e.selectedIndex].value;
+selObtData();
+
+var e1 = document.getElementById("buildingId");
+$scope.aptNameDisId= e1.options[e1.selectedIndex].text;
+
+//aptId=$(this).val();
+changeResident()
+getResidentDetails()
+getAllPreviousTransactions(radioValue);
+show2();
+});
+
+function changeResident(){
+   var residentListId = document.getElementById("residentId");
+//console.log(residentListId)
+while (residentListId.options.length) {
+        residentListId.remove(0);
+    }
+  }
+
+
+function getResidentDetails(){
+
+$http({
+    method : 'GET',
+   url : person.host+"/queries/getAllResByAprtId?apartmentId="+aptId,
+   }).then(function successCallback(response) {
+
+   $scope.resident = response.data;
+   //console.log($scope.resident)
+   var myselect = $('<select>');
+   if(response.data.length !=undefined){
+   myselect.append( $('<option id="selId"></option>').val("Select").html("- select -") );
+    for(var w=0;w<response.data.length;w++){
+   $scope.resident = response.data;
+   myselect.append( $('<option id="selId'+w+'"></option>').val(response.data[w].name).html(response.data[w].name+" , "+response.data[w].residentId) );
+   }
+   }else{
+   $scope.resident = [response.data];
+   myselect.append( $('<option ></option>').val(response.data.name).html(response.data.name+ " , " +response.data[w].residentId) );
+   }
+    $('#residentId').append(myselect.html());
+   }, function errorCallback(response) {
+    console.log(response.statusText);
+   });
+}
+
+//main post start
+
+
+$scope.mainPost = function()
+  {
+
+var selectedMainStatusType = "Active";
+
+var mcreatedDate = new Date();
+
+var madTotMainId = 0.0;
+var maAmtperesId = document.getElementById("maamtpresId").value;
+var prevBlAmount = document.getElementById("mainbalId").value;
+var description = document.getElementById("maindescId").value;
+var madNoOfResd = "";
+var madTenueType = "Monthly";
+var madCreatedBy = "Admin";
+
+var date = new Date();
+var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+if(isMainRecExist){
+date = new Date(prevStartDate);
+firstDay = new Date(date.getFullYear(), date.getMonth()+1, 1);
+lastDay = new Date(date.getFullYear(), date.getMonth() + 2, 0);
+}
+
+var firstDayformat = [(firstDay.getMonth()+1).padLeft(),
+firstDay.getDate().padLeft(),
+firstDay.getFullYear()].join('/');
+
+var lastDayformat = [(lastDay.getMonth()+1).padLeft(),
+lastDay.getDate().padLeft(),
+lastDay.getFullYear()].join('/') ;
+var mstartDate = firstDayformat;
+var mendDate = lastDayformat;
+var maintenId = aptId+[(firstDay.getMonth()+1).padLeft(),
+firstDay.getDate().padLeft(),
+firstDay.getFullYear()].join('');
+addMainId=maintenId;
+//var madAppartmentId = document.getElementById("adAppartmentId").value;
+  var url="";
+  var staticTenureData="";
+  var mainData= ({"$class": "poc.Maintenance","maintenAmountPerResd":maAmtperesId,"balFrmPreMaintenance":prevBlAmount, "maintenanceId":maintenId,  "createdDate" : mcreatedDate, "startDate" : mstartDate, "endDate" : mendDate, "totalMaintenance" : madTotMainId,"noOfResd" : madNoOfResd, "status" : selectedMainStatusType, "tenueType" : madTenueType, "createdBy" : madCreatedBy, "appartmentId" : aptId, "prevMainId":prevMainId ,"description":description});
+  $http({
+method : 'POST',
+url : person.host+"/Maintenance",
+data : mainData,
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then( function successCallback(response){
+if(isMainRecExist){
+assMainToRes();
+}else{
+assFirMain();
+}
+console.log("Successfully POST-ed data");
+//alert("added successfully..")
+});
+}
+
+//main post end
+
+//get maintenanceId By ApartmentId
+
+function selObtData(){
+$http({
+    method : 'GET',
+   url : person.host+"/queries/getMaintenanceByAprtId?apartmentId="+aptId,
+   }).then(function successCallback(response) {
+   //$scope.Maintenance = response.data;
+   if(response.data.length !=0){
+   isMainRecExist=true;
+   //assMainToRes()
+   }else{
+   isMainRecExist=false;
+   //assFirMain()
+   }
+   }, function errorCallback(response) {
+    console.log(response.statusText);
+   });
+}
+
+function assFirMain(){
+
+var maintenId = addMainId;
+var url="";
+  var staticTenureData="";
+  staticTenureData="resource:poc.Maintenance#"+maintenId;
+  var tenureData= ({"$class": "poc.assignFirstMaintenance","maintenance":staticTenureData});
+  $http({
+method : 'POST',
+url : person.host+"/assignFirstMaintenance",
+data : tenureData,
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then( function successCallback(response){
+getAllPreviousTransactions(radioValue);
+console.log("Successfully POST-ed data");
+//alert("added successfully..")
+
+});
+//myMainDeFunction();
+}
+
+function assMainToRes(){
+var maintenId = addMainId;
+var url="";
+  var staticData="";
+  staticData="resource:poc.Maintenance#"+maintenId;
+  var assTenureData= ({"$class": "poc.assignMaintenanceToRes","maintenance":staticData});
+  $http({
+method : 'POST',
+url : person.host+"/assignMaintenanceToRes",
+data : assTenureData,
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then( function successCallback(response){
+//getTenureData(maintenId)
+getAllPreviousTransactions(radioValue);
+console.log("Successfully POST-ed data");
+//alert("added successfully..")
+
+});
+//myMainDeFunction2();
+}
+
+<!-- Service DETAILS POST START-->
+$scope.serDetailpost = function(){
+var url="";
+var selectspdStatusId = "paid";
+var date = new Date();
+var dayformat = [(date.getMonth()+1).padLeft(),
+date.getDate().padLeft(),
+date.getFullYear()].join('/');
+var spdId = [(date.getMonth()+1).padLeft(),
+date.getDate().padLeft(),
+date.getFullYear()].join('') +
+[date.getHours().padLeft(),
+date.getMinutes().padLeft(),
+date.getSeconds().padLeft()].join('');
+var spdproId = document.getElementById("spdproId").value;
+var spdDescId = document.getElementById("sPDDescId").value;
+var spdTPriceId = document.getElementById("spdAmount").value;
+//alert("spdTPriceId="+spdTPriceId+",,rmainingBal="+rmainingBal)
+if(spdTPriceId>rmainingBal){
+alert("Bill amount should not be greater than Maintanence Balance")
+//$('#errorDisId').append("Bill amount should not be greater than Maintanence Balance")
+//$('#errorId').append("Bill amount should not be greater than Maintanence Balance")
+return false;
+}
+var spdpDate = dayformat;
+var spdpqId = 1;
+var spdcDatesId = dayformat;
+var spdaptIds = aptId;
+var  spdquanId = 1;
+var  maintainId = prevMainId;
+var serDetailsData=  JSON.stringify({"$class": "poc.ServiceDetails", "serviceDetailsId":spdId, "serviceProviderId":spdproId, "status":selectspdStatusId, "description":spdDescId, "quantity":spdquanId, "pricePerQty":spdpqId, "totalPrice":spdTPriceId, "createdDate":spdcDatesId, "paidDate":spdpDate, "appartmentId":spdaptIds, "maintenanceId": maintainId });
+console.log(serDetailsData)
+$http({
+method : 'POST',
+url : person.host+"/ServiceDetails",
+data : serDetailsData,
+headers : {
+'Content-Type' : 'application/json'
+}
+}).then( function successCallback(response){
+getAllPreviousTransactions(radioValue)
+console.log("Successfully POST-ed data");
+});
+}
+//sorting table
+function sortingFun(){
+$('tr.Entries').each(function() {
+     var $this = $(this),
+             t = this.cells[4].textContent.split('-');
+     $this.data('_ts', new Date(t[2], t[1]-1, t[0]).getTime());
+}).sort(function (a, b) {
+    return $(a).data('_ts') > $(b).data('_ts');
+}).appendTo('tbody');
+}
+
+$("#myInput").on("keyup", function() {
+    var value = $(this).val().toLowerCase();
+for(var tableid=0;tableid<allTables.length;tableid++){
+var sortTableId="#"+allTables[tableid]+" tr";
+$(sortTableId).filter(function() {
+var parentTag = $( this ).parent();
+//alert(parentTag[0].nodeName.toLowerCase());
+if(parentTag[0].nodeName.toLowerCase()!="thead")
+      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+    });
+}
+  });
+$scope.myMainDeFunction = function(){
+//alert()
+var e = document.getElementById("buildingId");
+aptTextId = e.options[e.selectedIndex].text;
+
+if(aptTextId == "- select -"){
+ document.getElementById("disButMainId").disabled = true;
+  }else{
+  addMainData()
+  }
+  
+} 
+$scope.mySerDeFunction = function(){
+var e = document.getElementById("buildingId");
+aptTextId = e.options[e.selectedIndex].text;
+
+ if(aptTextId == "- select -"){
+ document.getElementById("disButSerId").disabled = true;
+  }else{
+  addMainData()
+  }
+ 
+ }
+ 
+
+function addMainData(){
+  var x = document.getElementById("mainperResId");
+var y = document.getElementById("mainbalanceId");
+//alert(aptId);
+if(aptId!="- select -"){
+    if(isMainRecExist){
+x.style.display = "none";
+    y.style.display = "block";
+	document.getElementById("mainbalId").value=rmainingBal;
+}else{
+x.style.display = "block";
+y.style.display = "none";
+document.getElementById("mainbalId").value=0;
+}
+}else{
+alert("please select an Building to Add maintanance")
+}
+}
+
+function myMainDeFunction2() {
+    var x = document.getElementById("mainbalanceId");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+ 
+ 
+});
+</script>
+
+<!-- Service DETAILS POST END -->
+
+
+<script>
+function show2(){
+  document.getElementById('abc').style.display = 'block';
+}
+  function mySelectedValue() {
+    var x = document.getElementById("residentId").value;
+for(var tableid=0;tableid<allResidentIds.length;tableid++){
+    var sortTableId="#"+allResidentIds[tableid];
+if("Select"!=x){
+$(sortTableId).filter(function() {
+  $(this).parent().toggle($(this).text().indexOf(x) > -1)
+    });
+}else{
+$(sortTableId).filter(function() {
+  $(this).parent().toggle($(this).text().indexOf(x) == -1)
+});
+}
+}
+}
+  function mySelProviderValue() {
+   var elt = document.getElementById("providerId");
+   if (elt.selectedIndex == -1)
+        return null;
+
+    var x= elt.options[elt.selectedIndex].text;
+    //var x = document.getElementById("providerId");
+	//alert(x);
+//var value = $(this).val().toLowerCase();
+for(var tableid=0;tableid<allProvIds.length;tableid++){
+    var sortTableId="#"+allProvIds[tableid];
+if("- select -"!=x){
+$(sortTableId).filter(function() {
+
+      $(this).parent().toggle($(this).text().indexOf(x) > -1)
+    });
+}else{
+$(sortTableId).filter(function() {
+  $(this).parent().toggle($(this).text().indexOf(x) == -1);
+    });
+}
+}
+}
+</script>
+
+</head>
+<body ng-app="myapp" ng-controller="myappcontroller">
+
+<div style='width:100%; height:100px; border-bottom:1px solid green;   box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3); '><img src='images/Liveze-Logo.png' alt='' style='width:180px; height:60px; margin-top:1%; margin-left:1%;'></div>
+<div class="container-fluid" style="margin-top:5%;">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="form-group" >
+<label for="gender1" class="col-sm-12 control-label">Building:</label>
+<div class="col-sm-12">
+<select class="form-control" id="buildingId" >
+  <option>- select -</option>
+
+</select>      
+</div>
+</div>
+    </div>
+   <div class="col-sm-3">
+      <div class="form-group" >
+<label for="gender1" class="col-sm-12 control-label">Resident:</label>
+<div class="col-sm-12">
+<select class="form-control" id="residentId" onchange="mySelectedValue()">
+<option>- select -</option>
+</select>      
+</div>
+</div>
+    </div>
+  <div class="col-sm-3">
+      <div class="form-group" >
+<label for="gender1" class="col-sm-12 control-label" >Provider:</label>
+<div class="col-sm-12">
+<select class="form-control" id="providerId" onchange="mySelProviderValue()">
+  <option>- select -</option>
+</select>      
+</div>
+</div>
+    </div>
+  <div class="col-sm-3">
+      <div class="form-group" >
+<label for="gender1" class="col-sm-12 control-label">Search:</label>
+<input type="text" id="myInput" onkeyup="myFunction()" placeholder="" title="">
+</div>
+    </div>
+
+
+
+  </div>
+</div>
+
+
+
+<div class="container-fluid" style="margin-top:2%;">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="form-check">
+<input class="form-check-input" name="group100" type="radio" id="radio1month" value="1" onclick="show2();">
+<label class="form-check-label" for="radio100">1 month</label>
+</div>
+    </div>
+     <div class="col-sm-3">
+      <div class="form-check">
+<input class="form-check-input" name="group100" type="radio" id="radio3month" value="2" onclick="show2();">
+<label class="form-check-label" for="radio100">3 months</label>
+</div>
+    </div>
+    <div class="col-sm-3">
+      <div class="form-check">
+<input class="form-check-input" name="group100" type="radio" id="radioall" value="3" onclick="show2();" checked="checked" >
+<label class="form-check-label" for="radio100">All Previous Transactions</label>
+</div>
+    </div>
+
+
+<div class="col-sm-3">
+
+
+    <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#mySPModal" title="Add Service details" style="style=float:right;" ng-click="mySerDeFunction()" id="disButSerId">Add Service details</button>
+   <button type="submit" class="btn btn-primary"  data-target="#modelmaiId" data-toggle="modal" style="style=float:right;"  id="disButMainId" ng-click="myMainDeFunction()">Add Maintenance</button>
+
+
+   </div>
+
+<div id="errorDisId" style="margin-top:2%; margin-bottom:2%; color:red; font-weight:bold;"></div>
+<div id="NoMainId" style="margin-top:2%; margin-bottom:2%; color:red; font-weight:bold;"><div>
+  </div>
+</div>
+
+
+
+<!--Main Modal -->
+<div id="modelmaiId" class="modal fade" role="dialog">
+  <div class="modal-dialog" style="width:50%;">
+
+<!-- Main Modal content-->
+<div class="modal-content">
+  <div class="modal-header">
+<button type="button" class="close" data-dismiss="modal">&times;</button>
+<h4 class="modal-title">Maintainence Details</h4>
+  </div>
+  <div class="modal-body">
+
+<form data-toggle="validator" role="form" >
+
+
+
+
+
+<div class="container-fluid" style="margin-top:2%;">
+  <div class="row">
+    <div class="col-sm-12">
+<div class="form-group" id="mainperResId">
+<label for="tenueType" class="control-label">Maintenance Amount Per Resident</label>
+<input type="text" class="form-control" id="maamtpresId" placeholder="" required  ng-model="maintenanceform.maaapRes">
+  </div>
+    </div>
+     <div class="col-sm-12" id="mainbalanceId">
+      <div class="form-group" >
+<label for="tenueType" class="control-label">Maintainence Balance</label>
+<input type="text" class="form-control" id="mainbalId" placeholder="" required  >
+ 
+</div>
+    </div>
+    <div class="col-sm-3">
+      <div class="form-group" >
+<label for="tenueType" class="control-label">Description</label>
+<textarea  rows="4" cols="50"  class="form-control" id="maindescId" placeholder="" required  ></textarea>
+ 
+</div>
+    </div>
+
+
+<div class="col-sm-12">
+
+
+  
+  <div class="form-group">
+<button type="submit" class="btn btn-primary" data-dismiss="modal" id="mainbtn" ng-click="mainPost()">Submit</button>
+  </div>
+   </div>
+
+
+
+  </div>
+</div><!-- end -->
+
+</form>
+
+  </div>
+
+</div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="mySPModal" class="modal fade" role="dialog">
+  <div class="modal-dialog" style="width:50%;">
+
+<!-- Modal content-->
+<div class="modal-content">
+  <div class="modal-header">
+<button type="button" class="close" data-dismiss="modal">&times;</button>
+<h4 class="modal-title">Service Details</h4>
+  </div>
+  <div class="modal-body">
+
+<form data-toggle="validator" role="form">
+
+<div class="form-group">
+
+<div class="container">
+  <div class="row">
+   
+<div class="col-sm-4">
+<label for="serviceProviderId" class="control-label">Service Provider</label>
+<select class="form-control" id="spdproId">
+  <option>- select -</option>
+</select>      
+</div>
+  
+
+
+
+
+    <div class="col-sm-8"></div>  
+  </div>
+ 
+    <div class="row">
+    <div class="col-sm-4">
+<label for="description" class="control-label">Description</label>
+      <textarea  rows="4" cols="30" class="form-control" id="sPDDescId" placeholder="" required style="width:100%;"></textarea>
+
+    </div>
+    <div class="col-sm-8"></div>  
+  </div>
+ 
+  <div class="row">
+    <div class="col-sm-4">
+<label for="quantity" class="control-label">Amount</label>
+<input type="text" class="form-control" id="spdAmount" placeholder="" required style="width:100%;">
+ 
+    </div>
+    <div class="col-sm-8"></div>  
+  </div>
+  
+  <div id="errorId" style="margin-top:2%; margin-bottom:2%; margin-left:2%; color:red; font-weight:bold;"></div>
+ 
+    <div class="row" style="margin-top:2%;">
+   
+    <div class="col-sm-6">
+<button type="submit" class="btn btn-primary" id="spdbtn" data-dismiss="modal"  ng-click="serDetailpost()">Submit</button>
+</div>
+<div class="col-sm-6">
+
+    </div>
+  </div>
+ 
+ 
+</div>
+
+
+
+
+
+  </div>
+ 
+
+
+</form>
+
+  </div>
+
+</div>
+
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="row" id="abc" style="display:none; width:100%; margin-top:2%;">
+    <div class="col-sm-12">
+ 
+
+
+<div id="TotalServData"></div>
+
+
+
+<div id="myMaintenanceModal" class="modal fade" role="dialog">
+<div class="modal-dialog" style="width:50%;">
+
+<!-- Modal content-->
+<div class="modal-content">
+<div class="modal-header">
+<button type="button" class="close" data-dismiss="modal">&times;</button>
+<h4 class="modal-title">Maintainence Details</h4>
+</div>
+<div class="modal-body">
+<p>Some text in the modal.</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+</div>
+</div>
+
+</div>
+</div>
+
+
+<div id="myServiceProviderByAptIdModal" class="modal fade" role="dialog">
+<div class="modal-dialog">
+
+<!-- Modal content-->
+<div class="modal-content">
+<div class="modal-header">
+<button type="button" class="close" data-dismiss="modal">&times;</button>
+<h4 class="modal-title">Modal Header</h4>
+</div>
+<div class="modal-body">
+<p>myServiceProviderByAptIdModal</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+</div>
+</div>
+
+</div>
+</div>
+    </div>
+  </div>
+</div>
+<script>
+
+
+</script>
+</body>
+
+</html>
